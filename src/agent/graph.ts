@@ -33,7 +33,7 @@ const graph = new StateGraph(State)
   .compile();
 
 const result = await graph.invoke({
-  messages: [new HumanMessage("Name all the students?")],
+  messages: [new HumanMessage("Column of students table?")],
 });
 
 console.log(result.messages[result.messages.length - 1].content);
