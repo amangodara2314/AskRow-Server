@@ -4,23 +4,19 @@ import State, { GraphState } from "./state.js";
 import { getModelWithTool } from "./agent.js";
 import getTables from "./nodes/get-tables.node.js";
 import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
-import { getColumnsTool } from "./tools/index.js";
-import { systemMessage } from "./prompts/system.prompt.js";
+import { getColumnsTool, executeQueryTool } from "./tools/index.js";
+import { buildSystemMessage } from "./prompts/system.prompt.js";
 
-const tools = [getColumnsTool];
+const tools = [getColumnsTool, executeQueryTool];
 const agent = getModelWithTool(tools);
 const toolNode = new ToolNode(tools);
 
 const callAgent = async (state: GraphState) => {
-  const initialMessage =
-    state.messages.length > 0 ? undefined : new HumanMessage(state.question);
-  const messages = initialMessage
-    ? [systemMessage, initialMessage]
-    : [systemMessage, ...state.messages];
-  const response = await agent.invoke(messages);
-  return {
-    messages: initialMessage ? [initialMessage, response] : [response],
-  };
+  const response = await agent.invoke([
+    buildSystemMessage(state.tables),
+    ...state.messages,
+  ]);
+  return { messages: [response] };
 };
 
 const graph = new StateGraph(State)
@@ -34,10 +30,9 @@ const graph = new StateGraph(State)
   .compile();
 
 const result = await graph.invoke({
-  messages: [],
-  question: "What are the columns of the users table?",
+  messages: [new HumanMessage("Name all the students?")],
 });
 
-console.log(result);
+console.log(result.messages[result.messages.length - 1].content);
 
 export default graph;
