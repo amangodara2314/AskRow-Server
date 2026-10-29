@@ -13,4 +13,5 @@ type Tools = Parameters<typeof model.bindTools>[0];
 export const getModelWithTool = (tools: Tools) => {
   return model.bindTools(tools);
 };
+
 export default model;

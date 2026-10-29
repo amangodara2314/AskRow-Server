@@ -1,20 +1,9 @@
-import { tool } from "@langchain/core/tools";
 import pool from "../../config/db.js";
 import { TableColumns } from "../../types/index.js";
-import * as z from "zod";
+import { GraphState, GraphStateUpdate } from "../state.js";
 
-const getColumnsSchema = z.object({
-  tables: z
-    .array(z.string().trim().min(1))
-    .min(1)
-    .describe("Names of the database tables to inspect"),
-});
-
-type GetColumnsParameters = z.infer<typeof getColumnsSchema>;
-
-const getColumns = async ({
-  tables,
-}: GetColumnsParameters): Promise<TableColumns[]> => {
+export const getSchema = async (state: GraphState) => {
+  const { selectedTables } = state;
   const query = `
     SELECT 
         cols.table_name, 
@@ -43,7 +32,7 @@ const getColumns = async ({
       AND cols.table_name = ANY($1)  -- Evaluates dynamically against the passed array
     ORDER BY cols.table_name, cols.ordinal_position;
   `;
-  const result = await pool.query(query, [tables]);
+  const result = await pool.query(query, [selectedTables]);
 
   const tableMap = new Map<string, string[]>();
 
@@ -62,14 +51,7 @@ const getColumns = async ({
     }),
   );
 
-  return output;
+  return {
+    selectedTablesSchema: output,
+  };
 };
-
-export const getColumnsTool = tool(
-  async ({ tables }) => getColumns({ tables }),
-  {
-    name: "get_columns",
-    description: "Get column names for the specified database tables.",
-    schema: getColumnsSchema,
-  },
-);

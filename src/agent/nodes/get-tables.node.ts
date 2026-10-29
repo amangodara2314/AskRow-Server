@@ -12,4 +12,4 @@ const getTables = async () => {
   };
 };
 
-export default getTables;
+export { getTables };

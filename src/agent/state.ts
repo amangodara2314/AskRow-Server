@@ -5,7 +5,10 @@ const State = new StateSchema({
   messages: MessagesValue,
   question: z.string(),
   tables: z.array(z.string()),
-  tableSchemas: z.array(z.string()),
+  selectedTables: z.array(z.string()),
+  selectedTablesSchema: z.array(
+    z.object({ table_name: z.string(), table_columns: z.array(z.string()) }),
+  ),
   sql: z.string(),
   results: z.string(),
   retryCount: z.number(),
