@@ -5,31 +5,36 @@ import { getModelWithTool } from "./agent.js";
 import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
 import { executeQueryTool } from "./tools/index.js";
 import { buildSystemMessage } from "./prompts/system.prompt.js";
-import { getSchema, getTables, selectTables } from "./nodes/index.js";
+import {
+  getSchema,
+  getTables,
+  selectTables,
+  validateSqlNode,
+} from "./nodes/index.js";
+import { generateSql } from "./nodes/generate-sql.node.js";
 
-const tools = [executeQueryTool];
-const agent = getModelWithTool(tools);
-const toolNode = new ToolNode(tools);
+// const tools = [executeQueryTool];
+// const agent = getModelWithTool(tools);
+// const toolNode = new ToolNode(tools);
 
-const callAgent = async (state: GraphState) => {
-  const response = await agent.invoke([
-    buildSystemMessage(state.selectedTables),
-    ...state.messages,
-  ]);
-  return { messages: [response] };
-};
+// const callAgent = async (state: GraphState) => {
+//   const response = await agent.invoke([
+//     buildSystemMessage(state.selectedTables),
+//     ...state.messages,
+//   ]);
+//   return { messages: [response] };
+// };
 
 const graph = new StateGraph(State)
   .addNode("getTables", getTables)
   .addNode("selectTables", selectTables)
   .addNode("getSchema", getSchema)
-  .addNode("agent", callAgent)
-  .addNode("tools", toolNode)
+  .addNode("generateSql", generateSql)
+  .addNode("validate", validateSqlNode)
+  // .addNode("tools", toolNode)
   .addEdge(START, "getTables")
   .addEdge("getTables", "selectTables")
-  .addEdge("selectTables", "agent")
-  .addConditionalEdges("agent", toolsCondition)
-  .addEdge("tools", "agent")
+  .addEdge("selectTables", "generateSql")
   .compile();
 
 const result = await graph.invoke({

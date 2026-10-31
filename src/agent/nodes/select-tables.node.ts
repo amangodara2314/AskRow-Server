@@ -1,20 +1,16 @@
-import { AIMessage } from "@langchain/core/messages";
-import { GraphState, GraphStateUpdate } from "../state.js";
+import { GraphState } from "../state.js";
 import workflowConfig from "../../config/workflow.config.js";
 import model from "../agent.js";
 import * as z from "zod";
 import { selectTablesPrompt } from "../prompts/select-tables.prompt.js";
-
-const say = (text: string) => new AIMessage(text);
+import { say } from "../../utils/agent.utils.js";
 
 export const selectTables = async (state: GraphState) => {
   const { tables } = state;
   if (tables.length === 0) {
-    return {
-      messages: [
-        say("I couldn't find any tables this connection is allowed to read."),
-      ],
-    };
+    return say(
+      "I couldn't find any tables this connection is allowed to read.",
+    );
   }
 
   if (tables.length <= workflowConfig.selectAllThreshold) {
@@ -39,13 +35,9 @@ export const selectTables = async (state: GraphState) => {
     .slice(0, workflowConfig.selectAllThreshold);
 
   if (selected.length === 0) {
-    return {
-      messages: [
-        say(
-          "I couldn't find any relevant tables from the list of available tables.",
-        ),
-      ],
-    };
+    return say(
+      "I couldn't find any relevant tables from the list of available tables.",
+    );
   }
 
   return {

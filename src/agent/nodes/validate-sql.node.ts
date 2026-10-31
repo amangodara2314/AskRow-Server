@@ -1,4 +1,5 @@
 import { parse } from "libpg-query";
+import { GraphState, GraphStateUpdate } from "../state.js";
 
 const FORBIDDEN_NODES = new Set([
   "InsertStmt",
@@ -33,11 +34,11 @@ const FORBIDDEN_FUNCS = new Set([
 
 const ALLOWED_SCHEMAS = new Set(["public"]);
 
-export type Validation =
+type Validation =
   | { ok: true; sql: string; tables: string[] }
   | { ok: false; error: string };
 
-export async function validateSql(
+async function validateSql(
   rawSql: string,
   allowedTables: Set<string>,
 ): Promise<Validation> {
@@ -106,3 +107,17 @@ export async function validateSql(
 
   return { ok: true, sql, tables: [...tables] };
 }
+
+export const validateSqlNode = async (
+  state: GraphState,
+): Promise<GraphStateUpdate> => {
+  const { sql, selectedTables } = state;
+
+  const result = await validateSql(sql, new Set(selectedTables));
+
+  if (result.ok) {
+    return { sql: result.sql, error: "" };
+  }
+
+  return { error: result.error, retryCount: state.retryCount + 1 };
+};

@@ -10,7 +10,8 @@ const State = new StateSchema({
     z.object({ table_name: z.string(), table_columns: z.array(z.string()) }),
   ),
   sql: z.string(),
-  results: z.string(),
+  error: z.string(),
+  result: z.string(),
   retryCount: z.number(),
 });
 
