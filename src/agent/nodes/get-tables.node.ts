@@ -1,6 +1,7 @@
 import pool from "../../config/db.js";
+import { GraphState, GraphStateUpdate } from "../state.js";
 
-const getTables = async () => {
+const getTables = async (state: GraphState): Promise<GraphStateUpdate> => {
   const query = `SELECT table_schema, table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')`;
 
   const result = await pool.query(query);

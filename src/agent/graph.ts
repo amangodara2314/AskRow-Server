@@ -1,10 +1,7 @@
-import { START, StateGraph } from "@langchain/langgraph";
+import { END, START, StateGraph } from "@langchain/langgraph";
 import { HumanMessage } from "@langchain/core/messages";
 import State, { GraphState } from "./state.js";
-import { getModelWithTool } from "./agent.js";
-import { ToolNode, toolsCondition } from "@langchain/langgraph/prebuilt";
-import { executeQueryTool } from "./tools/index.js";
-import { buildSystemMessage } from "./prompts/system.prompt.js";
+
 import {
   getSchema,
   getTables,
@@ -12,18 +9,19 @@ import {
   validateSqlNode,
 } from "./nodes/index.js";
 import { generateSql } from "./nodes/generate-sql.node.js";
+import { executeQuery } from "./nodes/execute-query.node.js";
+import { answer } from "./nodes/answer.node.js";
+import workflowConfig from "../config/workflow.config.js";
 
-// const tools = [executeQueryTool];
-// const agent = getModelWithTool(tools);
-// const toolNode = new ToolNode(tools);
+const afterGenerate = (state: GraphState) => (state.sql ? "validate" : END);
 
-// const callAgent = async (state: GraphState) => {
-//   const response = await agent.invoke([
-//     buildSystemMessage(state.selectedTables),
-//     ...state.messages,
-//   ]);
-//   return { messages: [response] };
-// };
+const retryOrContinue = (next: "execute" | "answer") => (state: GraphState) => {
+  return state.error
+    ? state.retryCount >= workflowConfig.maxRetries
+      ? END
+      : "generateSql"
+    : next;
+}; // replace this END with giveUp node
 
 const graph = new StateGraph(State)
   .addNode("getTables", getTables)
@@ -31,16 +29,34 @@ const graph = new StateGraph(State)
   .addNode("getSchema", getSchema)
   .addNode("generateSql", generateSql)
   .addNode("validate", validateSqlNode)
-  // .addNode("tools", toolNode)
+  .addNode("execute", executeQuery)
+  .addNode("answer", answer)
   .addEdge(START, "getTables")
   .addEdge("getTables", "selectTables")
-  .addEdge("selectTables", "generateSql")
+  .addEdge("selectTables", "getSchema")
+  .addEdge("getSchema", "generateSql")
+  .addConditionalEdges("generateSql", afterGenerate, ["validate", END])
+  .addConditionalEdges("validate", retryOrContinue("execute"), [
+    "generateSql",
+    "execute",
+    END,
+  ])
+  .addConditionalEdges("execute", retryOrContinue("answer"), [
+    "answer",
+    "generateSql",
+    END,
+  ])
+  .addEdge("answer", END)
   .compile();
 
 const result = await graph.invoke({
-  messages: [new HumanMessage("Column of students table?")],
+  messages: [new HumanMessage("List all student names")],
+  retryCount: 0,
 });
 
-console.log(result.messages[result.messages.length - 1].content);
+result.messages.forEach((val) => {
+  console.log(val.content);
+  console.log("/n/");
+});
 
 export default graph;
