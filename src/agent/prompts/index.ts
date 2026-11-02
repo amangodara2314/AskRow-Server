@@ -1,1 +1,1 @@
-export * from "./system.prompt.js";
+export * from "./generate-sql.prompt.js";

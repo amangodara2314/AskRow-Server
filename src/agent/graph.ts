@@ -3,14 +3,16 @@ import { HumanMessage } from "@langchain/core/messages";
 import State, { GraphState } from "./state.js";
 
 import {
+  answer,
+  executeQuery,
+  generateSql,
   getSchema,
   getTables,
+  giveUp,
   selectTables,
   validateSqlNode,
 } from "./nodes/index.js";
-import { generateSql } from "./nodes/generate-sql.node.js";
-import { executeQuery } from "./nodes/execute-query.node.js";
-import { answer } from "./nodes/answer.node.js";
+
 import workflowConfig from "../config/workflow.config.js";
 
 const afterGenerate = (state: GraphState) => (state.sql ? "validate" : END);
@@ -18,10 +20,10 @@ const afterGenerate = (state: GraphState) => (state.sql ? "validate" : END);
 const retryOrContinue = (next: "execute" | "answer") => (state: GraphState) => {
   return state.error
     ? state.retryCount >= workflowConfig.maxRetries
-      ? END
+      ? "giveUp"
       : "generateSql"
     : next;
-}; // replace this END with giveUp node
+};
 
 const graph = new StateGraph(State)
   .addNode("getTables", getTables)
@@ -35,28 +37,32 @@ const graph = new StateGraph(State)
   .addEdge("getTables", "selectTables")
   .addEdge("selectTables", "getSchema")
   .addEdge("getSchema", "generateSql")
+  .addNode("giveUp", giveUp)
   .addConditionalEdges("generateSql", afterGenerate, ["validate", END])
   .addConditionalEdges("validate", retryOrContinue("execute"), [
     "generateSql",
     "execute",
-    END,
+    "giveUp",
   ])
   .addConditionalEdges("execute", retryOrContinue("answer"), [
     "answer",
     "generateSql",
-    END,
+    "giveUp",
   ])
   .addEdge("answer", END)
+  .addEdge("giveUp", END)
   .compile();
 
 const result = await graph.invoke({
-  messages: [new HumanMessage("List all student names")],
+  messages: [
+    new HumanMessage(
+      "Hello! I have a question about my database. Can you help me?",
+    ),
+  ],
   retryCount: 0,
 });
 
-result.messages.forEach((val) => {
-  console.log(val.content);
-  console.log("/n/");
-});
+console.log(result.messages.map((m) => m.text).join("\n\n"));
+console.log("Retry Count :", result.retryCount);
 
 export default graph;

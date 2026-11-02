@@ -13,7 +13,6 @@ const answer = async (state: GraphState): Promise<GraphStateUpdate> => {
       `Question: ${findQuestion(state.messages)}\n\n<results>\n${result}\n</results>`,
     ),
   ]);
-
   return say(`${answer.text}\n\n**Query used**\n\`\`\`sql\n${sql}\n\`\`\``);
 };
 

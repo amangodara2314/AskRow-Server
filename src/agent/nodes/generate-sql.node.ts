@@ -1,8 +1,8 @@
 import * as z from "zod";
-import { GraphState, GraphStateUpdate } from "../state.js";
+import { GraphState } from "../state.js";
 import { HumanMessage } from "@langchain/core/messages";
 import model from "../agent.js";
-import { buildSystemMessage } from "../prompts/system.prompt.js";
+import { buildGenerateSqlPrompt } from "../prompts/generate-sql.prompt.js";
 import { recentMessages, say } from "../../utils/agent.utils.js";
 
 const SqlOutput = z.object({
@@ -30,7 +30,7 @@ async function generateSql(state: GraphState) {
   const output = await model
     .withStructuredOutput(SqlOutput)
     .invoke([
-      buildSystemMessage(state.tables),
+      buildGenerateSqlPrompt(state.selectedTablesSchema),
       ...recentMessages(state.messages),
       ...retryHint,
     ]);
