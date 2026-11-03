@@ -1,12 +1,20 @@
 import { ChatGoogle } from "@langchain/google";
 import "dotenv/config";
 
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_API_KEY_SQL_AGENT = process.env.GOOGLE_API_KEY_SQL_AGENT || "";
+const GOOGLE_API_KEY_CLASSIFICATION_AGENT =
+  process.env.GOOGLE_API_KEY_CLASSIFICATION_AGENT || "";
 
-const model = new ChatGoogle("gemini-3.1-flash-lite", {
-  apiKey: GOOGLE_API_KEY,
-  temperature: 0,
-});
+const createModel = (apiKey: string) => {
+  return new ChatGoogle("gemini-3.1-flash-lite", {
+    apiKey,
+    temperature: 0,
+  });
+};
+
+const model = createModel(GOOGLE_API_KEY_SQL_AGENT);
+
+export const entryModel = createModel(GOOGLE_API_KEY_CLASSIFICATION_AGENT);
 
 type Tools = Parameters<typeof model.bindTools>[0];
 
