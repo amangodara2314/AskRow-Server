@@ -2,8 +2,8 @@ import * as z from "zod";
 import { GraphState } from "../state.js";
 import { HumanMessage } from "@langchain/core/messages";
 import model from "../agent.js";
-import { buildGenerateSqlPrompt } from "../prompts/generate-sql.prompt.js";
 import { recentMessages, say } from "../../utils/agent.utils.js";
+import { buildGenerateSqlPrompt } from "../prompts/index.js";
 
 const SqlOutput = z.object({
   sql: z

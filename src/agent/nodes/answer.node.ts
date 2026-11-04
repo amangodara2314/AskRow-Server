@@ -1,7 +1,7 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import model from "../agent.js";
 import { GraphState, GraphStateUpdate } from "../state.js";
-import { answerPrompt } from "../prompts/answer.prompt.js";
+import { answerPrompt } from "../prompts/index.js";
 import { findQuestion, say } from "../../utils/agent.utils.js";
 
 const answer = async (state: GraphState): Promise<GraphStateUpdate> => {

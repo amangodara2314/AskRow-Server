@@ -3,7 +3,7 @@ import * as z from "zod";
 
 const State = new StateSchema({
   messages: MessagesValue,
-  question: z.string(),
+  intent: z.enum(["DATABASE_QUERY", "IRRELEVANT"]),
   tables: z.array(z.string()),
   selectedTables: z.array(z.string()),
   selectedTablesSchema: z.array(

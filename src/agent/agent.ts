@@ -14,7 +14,9 @@ const createModel = (apiKey: string) => {
 
 const model = createModel(GOOGLE_API_KEY_SQL_AGENT);
 
-export const entryModel = createModel(GOOGLE_API_KEY_CLASSIFICATION_AGENT);
+export const classificationModel = createModel(
+  GOOGLE_API_KEY_CLASSIFICATION_AGENT,
+);
 
 type Tools = Parameters<typeof model.bindTools>[0];
 

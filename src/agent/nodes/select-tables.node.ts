@@ -2,8 +2,8 @@ import { GraphState } from "../state.js";
 import workflowConfig from "../../config/workflow.config.js";
 import model from "../agent.js";
 import * as z from "zod";
-import { selectTablesPrompt } from "../prompts/select-tables.prompt.js";
 import { say } from "../../utils/agent.utils.js";
+import { selectTablesPrompt } from "../prompts/index.js";
 
 export const selectTables = async (state: GraphState) => {
   const { tables } = state;

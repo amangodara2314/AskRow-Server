@@ -4,6 +4,7 @@ import State, { GraphState } from "./state.js";
 
 import {
   answer,
+  classifyIntent,
   executeQuery,
   generateSql,
   getSchema,
@@ -25,7 +26,11 @@ const retryOrContinue = (next: "execute" | "answer") => (state: GraphState) => {
     : next;
 };
 
+const afterClassification = (state: GraphState) =>
+  state.intent === "DATABASE_QUERY" ? "getTables" : END;
+
 const graph = new StateGraph(State)
+  .addNode("classifyIntent", classifyIntent)
   .addNode("getTables", getTables)
   .addNode("selectTables", selectTables)
   .addNode("getSchema", getSchema)
@@ -33,7 +38,11 @@ const graph = new StateGraph(State)
   .addNode("validate", validateSqlNode)
   .addNode("execute", executeQuery)
   .addNode("answer", answer)
-  .addEdge(START, "getTables")
+  .addEdge(START, "classifyIntent")
+  .addConditionalEdges("classifyIntent", afterClassification, [
+    "getTables",
+    END,
+  ])
   .addEdge("getTables", "selectTables")
   .addEdge("selectTables", "getSchema")
   .addEdge("getSchema", "generateSql")
@@ -54,11 +63,7 @@ const graph = new StateGraph(State)
   .compile();
 
 const result = await graph.invoke({
-  messages: [
-    new HumanMessage(
-      "Hello! I have a question about my database. Can you help me?",
-    ),
-  ],
+  messages: [new HumanMessage("Hello! how to use this tool?")],
   retryCount: 0,
 });
 

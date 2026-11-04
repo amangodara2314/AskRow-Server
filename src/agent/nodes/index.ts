@@ -6,3 +6,4 @@ export * from "./answer.node.js";
 export * from "./give-up.node.js";
 export * from "./execute-query.node.js";
 export * from "./generate-sql.node.js";
+export * from "./classify-intent.node.js";
