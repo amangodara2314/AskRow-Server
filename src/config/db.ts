@@ -1,17 +1,30 @@
-import { Pool } from "pg";
 import "dotenv/config";
+import mongoose, { mongo } from "mongoose";
 
-const pool = new Pool({
-  host: process.env.POSTGRES_HOST || "127.0.0.1",
-  port: Number(process.env.POSTGRES_PORT || 5432),
-  user: process.env.POSTGRES_USER || "postgres",
-  password: process.env.POSTGRES_PASSWORD || "postgres",
-  database: process.env.POSTGRES_DB || "postgres",
-  ssl:
-    process.env.POSTGRES_SSL === "true" ? { rejectUnauthorized: false } : false,
-  connectionTimeoutMillis: 10_000,
-});
+const MONGO_URI = process.env.MONGO_URI;
 
-pool.on("error", (err) => console.error("Unexpected pg pool error:", err));
+if (!MONGO_URI) {
+  throw new Error("MONGO_URI is required to connect to database.");
+}
 
-export default pool;
+const connectDb = async () => {
+  try {
+    await mongoose.connect(MONGO_URI);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+
+    throw new Error(`Unable to connect to database: ${message}`, {
+      cause: error,
+    });
+  }
+};
+
+const disconnectDb = async () => {
+  try {
+    await mongoose.disconnect();
+  } catch (error) {
+    console.log("Unable to disconnect database");
+  }
+};
+
+export { connectDb, disconnectDb };
