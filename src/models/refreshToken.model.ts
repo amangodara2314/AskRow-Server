@@ -1,4 +1,5 @@
 import mongoose, { InferSchemaType } from "mongoose";
+import { DocId } from "../types";
 
 const refreshTokenSchema = new mongoose.Schema({
   sessionId: {
@@ -11,18 +12,15 @@ const refreshTokenSchema = new mongoose.Schema({
     type: String,
     enum: ["active", "used", "revoked"],
     default: "active",
-    required: true,
   },
 
   createdAt: {
     type: Date,
     default: Date.now,
+    required: false,
   },
 
-  expiresAt: {
-    type: Date,
-    required: true,
-  },
+  usedAt: Date,
 
   tokenHash: {
     type: String,
@@ -52,4 +50,6 @@ refreshTokenSchema.index(
 
 export const RefreshToken = mongoose.model("RefreshToken", refreshTokenSchema);
 
-export type RefreshTokenDocument = InferSchemaType<typeof refreshTokenSchema>;
+export type RefreshTokenDocument = InferSchemaType<
+  typeof refreshTokenSchema
+> & { _id?: DocId };

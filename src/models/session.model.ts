@@ -14,24 +14,46 @@ const sessionSchema = new mongoose.Schema({
     required: true,
   },
 
+  lastSeenAt: {
+    type: Date,
+    default: Date.now,
+    required: false,
+  },
+
   userAgent: String,
   ipHash: String,
 
   createdAt: {
     type: Date,
     default: Date.now,
+    required: false,
   },
-  expiresAt: {
+
+  idleExpiresAt: {
     type: Date,
     required: true,
+  },
+
+  absoluteExpiresAt: {
+    type: Date,
+    required: true,
+  },
+
+  refreshVersion: {
+    type: Number,
+    default: 0,
   },
 
   revokedAt: Date,
   revokedReason: String,
 });
 
+sessionSchema.index({ userId: 1, status: 1 });
+
 const Session = mongoose.model("Session", sessionSchema);
 
-export type SessionDocument = InferSchemaType<typeof sessionSchema>;
+export type SessionDocument = InferSchemaType<typeof sessionSchema> & {
+  _id?: mongoose.Types.ObjectId;
+};
 
 export default Session;
