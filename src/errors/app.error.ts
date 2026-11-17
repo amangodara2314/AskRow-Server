@@ -1,13 +1,18 @@
-class AppError extends Error {
+export type ErrorDetails = {
+  code?: string;
+  details?: unknown;
+};
+
+export class AppError extends Error {
   public statusCode: number;
-  public errors: unknown[] | {} | null;
+  public details: unknown[] | {} | null;
   constructor(
     message: string,
     statusCode: number,
-    errors: unknown[] | {} | null,
+    details: unknown[] | {} | null,
   ) {
     super(message);
     this.statusCode = statusCode;
-    this.errors = errors;
+    this.details = details;
   }
 }
