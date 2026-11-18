@@ -1,4 +1,4 @@
-import pool from "../../config/db.js";
+import pool from "../../config/db.config.js";
 import { TableColumns } from "../../types/index.js";
 import { GraphState, GraphStateUpdate } from "../state.js";
 

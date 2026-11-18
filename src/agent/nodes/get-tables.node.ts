@@ -1,4 +1,4 @@
-import pool from "../../config/db.js";
+import pool from "../../config/db.config.js";
 import { GraphState, GraphStateUpdate } from "../state.js";
 
 const getTables = async (state: GraphState): Promise<GraphStateUpdate> => {

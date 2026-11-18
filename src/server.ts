@@ -1,5 +1,5 @@
 import app from "./app";
-import { connectDb, disconnectDb } from "./config/db";
+import { connectDb, disconnectDb } from "./config/db.config";
 import { getErrorMessage } from "./utils/helper";
 
 const PORT = process.env.PORT;

@@ -1,4 +1,4 @@
-import pool from "../../config/db.js";
+import pool from "../../config/db.config.js";
 import { GraphState } from "../state.js";
 
 const executeQuery = async (state: GraphState) => {
