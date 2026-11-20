@@ -1,5 +1,6 @@
 import app from "./app";
 import { connectDb, disconnectDb } from "./config/db.config";
+import { verifyEmailTransporter } from "./config/transporter.config";
 import { getErrorMessage } from "./utils/helper";
 
 const PORT = process.env.PORT;
@@ -11,6 +12,7 @@ if (!PORT) {
 const startServer = async (): Promise<void> => {
   try {
     await connectDb();
+    await verifyEmailTransporter();
     const server = app.listen(PORT, () => {
       console.log(`Database connected and Server Start on Port ${PORT}`);
     });
