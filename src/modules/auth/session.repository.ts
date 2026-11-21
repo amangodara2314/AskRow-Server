@@ -3,7 +3,7 @@ import Session, { SessionDocument } from "../../models/session.model";
 import {
   RefreshToken,
   RefreshTokenDocument,
-} from "../../models/refreshToken.model";
+} from "../../models/refresh-token.model";
 import { DocId } from "../../types";
 
 async function createSession(

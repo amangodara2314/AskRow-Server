@@ -1,9 +1,9 @@
 import mongoose, { ClientSession, Types } from "mongoose";
-import { signAccessToken } from "../../utils/accessToken";
+import { signAccessToken } from "../../utils/access-token";
 import {
   generateRefreshToken,
   hashRefreshToken,
-} from "../../utils/refreshToken";
+} from "../../utils/refresh-token";
 import sessionRepository from "./session.repository";
 import authConfig from "../../config/auth.config";
 
