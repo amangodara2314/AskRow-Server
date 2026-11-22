@@ -8,14 +8,24 @@ export type EmailJobData = {
   subject: string;
   text: string;
   html: string;
+  name: string;
+  otp?: string;
 };
 
+type EnqueueEmailJob = Pick<EmailJobData, "to" | "name" | "otp"> & {
+  jobType: EmailJobName;
+};
 const emailQueue = new Queue<EmailJobData, void, EmailJobName>(
   "email-queue",
   queueConfig,
 );
 
-export async function enqueueEmailJob(name: EmailJobName, to: string) {
+export async function enqueueEmailJob({
+  jobType,
+  to,
+  name,
+  otp,
+}: EnqueueEmailJob) {
   await emailQueue.add(name, { to });
 }
 

@@ -13,15 +13,15 @@ export async function sendEmail(data: EmailJobData) {
   console.log(mail.accepted);
 }
 
-const { html, text } = getEmailTemplate({
-  name: "Aman",
-  email: "amangodara.dev@gmail.com",
-  otp: "234561",
-});
+// const { html, text } = getEmailTemplate({
+//   name: "Aman",
+//   email: "amangodara.dev@gmail.com",
+//   otp: "234561",
+// });
 
-await sendEmail({
-  to: "amangodara.dev@gmail.com",
-  subject: "Testing",
-  html,
-  text,
-});
+// await sendEmail({
+//   to: "amangodara.dev@gmail.com",
+//   subject: "Testing",
+//   html,
+//   text,
+// });

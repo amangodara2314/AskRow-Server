@@ -1,50 +1,79 @@
 import { templates } from "../constants/email-templates";
 
-type GetOtpVerificationTemplate = {
-  name: string;
-  email: string;
-  otp: string;
-  expiryMinutes?: number;
+type TemplateName = keyof typeof templates;
+
+type TemplateArgs = {
+  "otp-verification": {
+    name: string;
+    email: string;
+    otp: string;
+    expiryMinutes?: number;
+  };
+  "welcome-email": {
+    name: string;
+  };
 };
 
-const escapeHtml = (str = "") =>
-  String(str)
+type TemplateRequest = {
+  [T in TemplateName]: {
+    template: T;
+    data: TemplateArgs[T];
+  };
+}[TemplateName];
+
+type TemplateValues = Record<string, string | number>;
+
+const escapeHtml = (value: string): string =>
+  value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
 
-export default function getOtpVerificationTemplate({
-  name,
-  email,
-  otp,
-  expiryMinutes = 10,
-}: GetOtpVerificationTemplate) {
-  const { html, getText } = templates["otp-verification"];
-  const digits = String(otp).split("");
-  const values = {
-    NAME: escapeHtml(name || "there"),
-    EMAIL: escapeHtml(email),
-    OTP: escapeHtml(otp),
-    EXPIRY_MINUTES: expiryMinutes,
+function renderHtml(source: string, values: TemplateValues): string {
+  return source.replace(/{{(\w+)}}/g, (match: string, key: string) =>
+    Object.hasOwn(values, key) ? String(values[key]) : match,
+  );
+}
+
+export default function getEmailTemplate(request: TemplateRequest) {
+  if (request.template === "otp-verification") {
+    const { data } = request;
+    const expiryMinutes = data.expiryMinutes ?? 10;
+
+    const digitValues: Record<string, string> = {};
+    for (let index = 0; index < 6; index += 1) {
+      digitValues[`D${index + 1}`] = escapeHtml(data.otp[index] ?? "");
+    }
+
+    const values: TemplateValues = {
+      ...digitValues,
+      NAME: escapeHtml(data.name || "there"),
+      EMAIL: escapeHtml(data.email),
+      OTP: escapeHtml(data.otp),
+      EXPIRY_MINUTES: expiryMinutes,
+      YEAR: new Date().getFullYear(),
+    };
+
+    return {
+      html: renderHtml(templates["otp-verification"].html, values),
+      text: templates["otp-verification"].getText({
+        name: data.name,
+        otp: data.otp,
+        expiryMinutes,
+      }),
+    };
+  }
+
+  const { data } = request;
+  const values: TemplateValues = {
+    NAME: escapeHtml(data.name || "there"),
     YEAR: new Date().getFullYear(),
-    SUPPORT_EMAIL: process.env.SUPPORT_EMAIL || "support@askrow.com",
   };
 
-  let emailHtml = html.replace(/{{D([1-6])}}/g, (_, i) => digits[i - 1] ?? "");
-  const isValueKey = (key: string): key is keyof typeof values =>
-    Object.hasOwn(values, key);
-
-  emailHtml = emailHtml.replace(/{{(\w+)}}/g, (match: string, key: string) =>
-    isValueKey(key) ? String(values[key]) : match,
-  );
-
-  let text = getText({
-    name: values.NAME,
-    otp: values.OTP,
-    expiryMinutes: values.EXPIRY_MINUTES,
-  });
-
-  return { html: emailHtml, text };
+  return {
+    html: renderHtml(templates["welcome-email"].html, values),
+    text: templates["welcome-email"].getText(),
+  };
 }
