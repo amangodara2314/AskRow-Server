@@ -3,7 +3,7 @@ import { templates } from "../constants/email-templates";
 type TemplateName = keyof typeof templates;
 
 type TemplateArgs = {
-  "otp-verification": {
+  "email-verification": {
     name: string;
     email: string;
     otp: string;
@@ -38,7 +38,7 @@ function renderHtml(source: string, values: TemplateValues): string {
 }
 
 export default function getEmailTemplate(request: TemplateRequest) {
-  if (request.template === "otp-verification") {
+  if (request.template === "email-verification") {
     const { data } = request;
     const expiryMinutes = data.expiryMinutes ?? 10;
 
@@ -57,12 +57,13 @@ export default function getEmailTemplate(request: TemplateRequest) {
     };
 
     return {
-      html: renderHtml(templates["otp-verification"].html, values),
-      text: templates["otp-verification"].getText({
+      html: renderHtml(templates["email-verification"].html, values),
+      text: templates["email-verification"].getText({
         name: data.name,
         otp: data.otp,
         expiryMinutes,
       }),
+      subject: templates["email-verification"].subject,
     };
   }
 
@@ -75,5 +76,6 @@ export default function getEmailTemplate(request: TemplateRequest) {
   return {
     html: renderHtml(templates["welcome-email"].html, values),
     text: templates["welcome-email"].getText(),
+    subject: templates["email-verification"].subject,
   };
 }

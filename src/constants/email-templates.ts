@@ -1,4 +1,5 @@
 const OTP_VERIFICATION_TEMPLATE = {
+  subject: "Your AskRow verification code",
   html: `
 <!doctype html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
@@ -341,11 +342,12 @@ const OTP_VERIFICATION_TEMPLATE = {
 };
 
 export const templates = {
-  "otp-verification": OTP_VERIFICATION_TEMPLATE,
+  "email-verification": OTP_VERIFICATION_TEMPLATE,
   "welcome-email": {
     html: "<p>Welcome</p>",
     getText() {
       return "Hi";
     },
+    subject: "Welcome back!",
   },
 };

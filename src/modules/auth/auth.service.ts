@@ -1,20 +1,53 @@
 import { ConflictError } from "../../errors/conflict.error";
 import { UserDocument } from "../../models/user.model";
 import { enqueueEmailJob } from "../../queues/email.queue";
+import { generateOtp } from "../../utils/otp";
+import { hashPassword } from "../../utils/password";
 import authRepository from "./auth.repository";
 
-// check if the email already exists in the database
-// if it does and its verified return already exists please login
-// if it does and its not verified send verification email otp
-// if its does create user in database
-// send otp in email and return
+async function register(data: UserDocument) {
+  const { email, name, password } = data;
+  const existingUser = await authRepository.findUserByEmail(email);
+  if (existingUser && existingUser.isVerified)
+    throw new ConflictError("Email already exists. Try logging in");
 
-async function register(data: Omit<UserDocument, "password">) {
-  const { email, name } = data;
-  const existingUser = await authRepository.findUserByEmail(email)
-  if (existingUser && existingUser.isVerified) throw new ConflictError("Email already exists. Try logging in")
-  
-  if(existingUser && !existingUser.isVerified) {
-    await enqueueEmailJob("email-verification",)
+  const otp = generateOtp();
+
+  if (existingUser && !existingUser.isVerified) {
+    await enqueueEmailJob({
+      jobType: "email-verification",
+      to: existingUser.email,
+      name: existingUser.name,
+      otp,
+    });
+
+    return {
+      message:
+        "Verification otp has been sent to your mail. Please check your inbox",
+    };
   }
+
+  const hashedPassword = hashPassword(password);
+
+  const user = await authRepository.createUser({
+    email,
+    name,
+    password: hashedPassword,
+  });
+
+  await enqueueEmailJob({
+    jobType: "email-verification",
+    to: user.email,
+    name: user.name,
+    otp,
+  });
+
+  return {
+    message:
+      "Account successfully created. Please verify your account using the otp sent to your email.",
+  };
 }
+
+export default {
+  register,
+};
