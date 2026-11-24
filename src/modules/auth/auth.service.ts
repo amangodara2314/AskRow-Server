@@ -1,19 +1,23 @@
+import redis from "../../config/redis.config";
+import REDIS_KEYS from "../../constants/redis-keys";
+import { AppError } from "../../errors/app.error";
 import { ConflictError } from "../../errors/conflict.error";
 import { UserDocument } from "../../models/user.model";
 import { enqueueEmailJob } from "../../queues/email.queue";
-import { generateOtp } from "../../utils/otp";
+import { generateOtp, hashOtp } from "../../utils/otp";
 import { hashPassword } from "../../utils/password";
 import authRepository from "./auth.repository";
+import otpService from "./otp.service";
 
 async function register(data: UserDocument) {
   const { email, name, password } = data;
   const existingUser = await authRepository.findUserByEmail(email);
+
   if (existingUser && existingUser.isVerified)
     throw new ConflictError("Email already exists. Try logging in");
 
-  const otp = generateOtp();
-
   if (existingUser && !existingUser.isVerified) {
+    const { otp } = await otpService.issueOtp(existingUser.email);
     await enqueueEmailJob({
       jobType: "email-verification",
       to: existingUser.email,
@@ -34,6 +38,8 @@ async function register(data: UserDocument) {
     name,
     password: hashedPassword,
   });
+
+  const { otp } = await otpService.issueOtp(email);
 
   await enqueueEmailJob({
     jobType: "email-verification",

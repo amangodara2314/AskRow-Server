@@ -5,14 +5,16 @@ export type ErrorDetails = {
 
 export class AppError extends Error {
   public statusCode: number;
-  public details: unknown[] | {} | null;
+  public details?: unknown[] | {} | null;
   constructor(
     message: string,
     statusCode: number,
-    details: unknown[] | {} | null,
+    details?: unknown[] | {} | null,
   ) {
     super(message);
     this.statusCode = statusCode;
-    this.details = details;
+    if (details) {
+      this.details = details;
+    }
   }
 }
