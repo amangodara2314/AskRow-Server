@@ -6,6 +6,6 @@ if (!redisConnectionUrl) {
   throw new Error("Redis connection url is missing");
 }
 
-const redis = new Redis(redisConnectionUrl);
+const redis = new Redis(redisConnectionUrl, { maxRetriesPerRequest: null });
 
 export default redis;
