@@ -28,7 +28,7 @@ async function issueOtp(email: string) {
   );
   if (!acquired) {
     const ttl = await redis.ttl(otpCooldownKey);
-    throw new AppError(`Cannot send otp before ${ttl}`, 429);
+    throw new AppError(`Cannot send otp before ${ttl} seconds`, 429);
   }
 
   const otpSentCountKey = REDIS_KEYS.otpSentCount(email);
